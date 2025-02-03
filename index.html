@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de Mot de Passe</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <style>
+        body {
+            background-color: #121212;
+            color: #00aaff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+        .container {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 170, 255, 0.5);
+            text-align: center;
+        }
+        input, button {
+            margin: 10px;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+        }
+        input {
+            width: 80%;
+            text-align: center;
+            background: #333;
+            color: #00aaff;
+            border: none;
+        }
+        button {
+            background: #00aaff;
+            color: #121212;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0088cc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Générateur de Mot de Passe</h2>
+        <input type="text" id="password" readonly>
+        <br>
+        <button onclick="generatePassword()">Générer</button>
+        <button onclick="copyPassword()">Copier</button>
+        <button onclick="downloadEncrypted()">Télécharger (Chiffré)</button>
+        <br>
+        <input type="file" id="fileInput">
+        <button onclick="decryptFile()">Déchiffrer</button>
+    </div>
+
+    <script>
+        const secretKey = "maCleSecrete123";
+
+        function generatePassword() {
+            let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
+            let password = "";
+            for (let i = 0; i < 20; i++) {
+                password += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById("password").value = password;
+        }
+        
+        function copyPassword() {
+            let passwordField = document.getElementById("password");
+            passwordField.select();
+            document.execCommand("copy");
+            alert("Mot de passe copié !");
+        }
+        
+        function downloadEncrypted() {
+            let password = document.getElementById("password").value;
+            if (!password) {
+                alert("Générez un mot de passe d'abord !");
+                return;
+            }
+            let encrypted = CryptoJS.AES.encrypt(password, secretKey).toString();
+            let blob = new Blob([encrypted], { type: "text/plain" });
+            let a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "password_encrypted.txt";
+            a.click();
+        }
+        
+        function decryptFile() {
+            let fileInput = document.getElementById("fileInput");
+            if (!fileInput.files.length) {
+                alert("Sélectionnez un fichier d'abord !");
+                return;
+            }
+            let file = fileInput.files[0];
+            let reader = new FileReader();
+            reader.onload = function(event) {
+                let encryptedText = event.target.result;
+                let decrypted = CryptoJS.AES.decrypt(encryptedText, secretKey).toString(CryptoJS.enc.Utf8);
+                if (!decrypted) {
+                    alert("Échec du déchiffrement !");
+                } else {
+                    alert("Mot de passe déchiffré : " + decrypted);
+                }
+            };
+            reader.readAsText(file);
+        }
+    </script>
+</body>
+</html>
